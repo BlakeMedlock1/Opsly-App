@@ -37,6 +37,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e2267c32-45a9-44f5-a6de-35eb40a545be"
+      }
+    },
+    "owner": "blakemedlock"
   }
 }
