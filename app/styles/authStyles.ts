@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#27374D',
+    backgroundColor: '#2c3e50',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
@@ -26,6 +26,11 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  logoImage: {
+    width: 100,  
+    height: 100,
+    marginBottom: 10,
+  },  
   title: {
     color: '#fff',
     fontSize: 32,

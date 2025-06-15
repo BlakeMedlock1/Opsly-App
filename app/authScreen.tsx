@@ -1,9 +1,10 @@
 import {
     ActivityIndicator,
+    Image,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { styles } from './styles/authStyles';
 import { useAuthViewModel } from './view_models/authViewModel';
@@ -24,10 +25,11 @@ import { useAuthViewModel } from './view_models/authViewModel';
     return (
       <View style={styles.container}>
         <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>✓</Text>
-          </View>
-          <Text style={styles.title}>Opsly</Text>
+        <Image
+          source={require('../assets/images/opsly.png')} 
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         </View>
   
         <View style={styles.toggleContainer}>

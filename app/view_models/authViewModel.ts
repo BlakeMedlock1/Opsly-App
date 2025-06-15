@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useAuth } from '../context/authContext';
 
@@ -38,6 +39,10 @@ export function useAuthViewModel() {
         setIsAuthenticated(true);
         const role = await getUserRole(user.id);
         setRole(role);
+        if (role === 'employee') router.replace('/employeeHome');
+        else if (role === 'manager') router.replace('/managerHome');
+        else if (role === 'admin') router.replace('/adminHome');
+        else throw new Error('Unknown role');
       }
     } catch (err: any) {
       setError(err.message || 'Unknown error');
