@@ -3,16 +3,16 @@ import React from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 
 interface Props {
-  activeTab: string;
-  onTabPress: (tab: string) => void;
-}
+    activeTab: string;
+    onTabPress: (path: string) => void;
+  }  
 
 const tabs = [
-  { key: 'home', icon: require('../assets/icons/home.png') },
-  { key: 'star', icon: require('../assets/icons/star.png') },
-  { key: 'tasks', icon: require('../assets/icons/checklist.png') },
-  { key: 'messages', icon: require('../assets/icons/mail.png') },
-  { key: 'menu', icon: require('../assets/icons/menu.png') },
+  { key: 'employeeHome', path: '/employeeHome', icon: require('../assets/icons/home.png') },
+  { key: 'stats', path: '/stats', icon: require('../assets/icons/star.png') },
+  { key: 'tasks', path: '/tasks', icon: require('../assets/icons/checklist.png') },
+  { key: 'messages', path: '/messages', icon: require('../assets/icons/mail.png') },
+  { key: 'menu', path: '/employeeMenu', icon: require('../assets/icons/menu.png') },
 ];
 
 const EmployeeNavbar: React.FC<Props> = ({ activeTab, onTabPress }) => {
@@ -25,7 +25,7 @@ const EmployeeNavbar: React.FC<Props> = ({ activeTab, onTabPress }) => {
             styles.tabItem,
             activeTab === tab.key && styles.activeTab,
           ]}
-          onPress={() => onTabPress(tab.key)}
+          onPress={() => onTabPress(tab.path)}
         >
           <Image
             source={tab.icon}
