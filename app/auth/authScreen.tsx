@@ -1,12 +1,12 @@
 import { ActivityIndicator, Image } from 'react-native'
 import {
-    Button,
-    Input,
-    Text,
-    XStack,
-    YStack
+  Button,
+  Input,
+  Text,
+  XStack,
+  YStack
 } from 'tamagui'
-import { useAuthViewModel } from './view_models/authViewModel'
+import { useAuthViewModel } from './authViewModel'
 
 export default function AuthScreen() {
   const {
@@ -25,7 +25,7 @@ export default function AuthScreen() {
     <YStack flex={1} justifyContent="center" alignItems="center" paddingHorizontal={16} backgroundColor="#2c3e50">
       <YStack marginBottom={32} alignItems="center">
         <Image
-          source={require('../assets/images/opsly.png')}
+          source={require('../../assets/images/opsly.png')}
           style={{ width: 100, height: 100, marginBottom: 10 }}
           resizeMode="contain"
         />

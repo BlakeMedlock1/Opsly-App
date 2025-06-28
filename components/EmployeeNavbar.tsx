@@ -4,14 +4,14 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { styled } from 'tamagui';
 
-type TabPath = '/employeeHome' | '/stats' | '/tasks' | '/messages' | '/menu';
+type TabPath = '/employee/employeeHome' | '/employee/stats' | '/employee/tasks' | '/employee/messages' | '/employee/menu';
 
 const tabs: { key: string; path: TabPath; Icon: React.FC<{ size: number; color: string }> }[] = [
-  { key: 'employeeHome', path: '/employeeHome', Icon: Home },
-  { key: 'stats', path: '/stats', Icon: Star },
-  { key: 'tasks', path: '/tasks', Icon: CheckSquare },
-  { key: 'messages', path: '/messages', Icon: Mail },
-  { key: 'menu', path: '/menu', Icon: Menu },
+  { key: 'employeeHome', path: '/employee/employeeHome', Icon: Home },
+  { key: 'stats', path: '/employee/stats', Icon: Star },
+  { key: 'tasks', path: '/employee/tasks', Icon: CheckSquare },
+  { key: 'messages', path: '/employee/messages', Icon: Mail },
+  { key: 'menu', path: '/employee/menu', Icon: Menu },
 ];
 
 const Container = styled(View, {
@@ -37,7 +37,7 @@ const EmployeeNavbar = () => {
             key={key}
             onPress={() => {
               if (pathname !== path) {
-                router.push(path);
+                router.push(path as any);
               }
             }}
           >
