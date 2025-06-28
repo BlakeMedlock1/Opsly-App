@@ -1,5 +1,5 @@
 
-import EmployeeNavbar from '@/components/EmployeeNavBar';
+import EmployeeNavbar from '@/components/EmployeeNavbar';
 import TopHeader from '@/components/Header';
 import React from 'react';
 import { Text, View } from 'react-native';
