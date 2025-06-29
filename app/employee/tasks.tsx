@@ -61,6 +61,7 @@ export default function TasksPage() {
             onPress={() => setShowPicker(true)}
             theme="gray"
             variant="outlined"
+            color="#fff"
           >
             Pick Date
           </Button>
