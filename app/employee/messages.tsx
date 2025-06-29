@@ -1,29 +1,14 @@
 import { Message } from '@/app/types';
 import EmployeeNavbar from '@/components/EmployeeNavbar';
 import TopHeader from '@/components/Header';
+import { getUserMessages, markMessageAsRead } from '@/lib/api/messages';
 import { Mail } from '@tamagui/lucide-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { Card, Text, XStack, YStack } from 'tamagui';
+import { getCurrentUserId } from '../auth/authHelpers';
 
-const mockMessages: Message[] = [
-  {
-    id: '1',
-    title: 'Shift Update',
-    content: 'Tomorrow’s shift will start at 9 AM instead of 8 AM.',
-    date: '2025-06-28T15:30:00Z',
-    read: false,
-  },
-  {
-    id: '2',
-    title: 'Policy Reminder',
-    content: 'Please remember to wear your safety gear at all times.',
-    date: '2025-06-27T12:00:00Z',
-    read: true,
-  },
-];
-
-const MessageCard = ({ message }: { message: Message }) => {
+const MessageCard = ({ message, onPress }: { message: Message, onPress: () => void; }) => {
   return (
     <Card
       backgroundColor={message.read ? '#34495e' : '#1abc9c'}
@@ -52,18 +37,67 @@ const MessageCard = ({ message }: { message: Message }) => {
 };
 
 export default function MessagesPage() {
-  const [messages, setMessages] = useState(mockMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadMessages() {
+      try {
+        const userId = await getCurrentUserId();
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+        const msgs = await getUserMessages(userId);
+        setMessages(msgs);
+      } catch (error) {
+        console.error('Failed to fetch messages:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMessages();
+  }, []);
+
+  const handleMarkRead = async (messageId: string) => {
+    try {
+      await markMessageAsRead(messageId);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, read: true } : msg
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark message as read:', error);
+    }
+  };
 
   return (
     <>
       <TopHeader />
       <YStack flex={1} backgroundColor="#22303D" padding="$4">
-        <FlatList
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <MessageCard message={item} />}
-          contentContainerStyle={{ paddingBottom: 80 }}
-        />
+        {loading ? (
+          <Text color="#fff" fontSize="$4" textAlign="center" marginTop="$4">
+            Loading messages...
+          </Text>
+        ) : messages.length > 0 ? (
+          <FlatList
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <MessageCard
+                message={item}
+                onPress={() => handleMarkRead(item.id)}
+              />
+            )}
+            contentContainerStyle={{ paddingBottom: 80 }}
+          />
+        ) : (
+          <Text color="#ccc" fontSize="$4" textAlign="center" marginTop="$4">
+            No messages available.
+          </Text>
+        )}
       </YStack>
       <EmployeeNavbar />
     </>

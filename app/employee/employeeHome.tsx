@@ -1,48 +1,55 @@
 import EmployeeNavbar from '@/components/EmployeeNavbar';
 import TopHeader from '@/components/Header';
 import TaskList from '@/components/TaskList';
+import { getTasksByDate } from '@/lib/api/tasks';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { YStack } from 'tamagui';
+import { Text, YStack } from 'tamagui';
+import { getCurrentUserId } from '../auth/authHelpers';
 import { Task } from '../types';
 
-const today = new Date().toISOString().slice(0, 10);
-
-const mockTasks = [
-  {
-    id: '1',
-    title: 'Daily Safety Check',
-    description: 'Check all safety protocols.',
-    instructions: 'Detailed instructions here...',
-    assignedDate: today,
-    status: 'Not Started',
-  },
-  {
-    id: '2',
-    title: 'Inventory Count',
-    description: 'Count all items in warehouse.',
-    instructions: 'Detailed instructions here...',
-    assignedDate: today,
-    status: 'Submitted',
-  },
-] as const;
-
 export default function EmployeeHome() {
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const date = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const userId = await getCurrentUserId();
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+        const data = await getTasksByDate(userId, date);
+        setTasks(data);
+      } catch (err) {
+        console.error('Failed to fetch tasks:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, []);
 
   const handleTaskPress = (task: Task) => {
     router.push(`/modals/task/${task.id}`);
   };
-  
-  const todaysTasks = tasks.filter(t => t.assignedDate === today);
 
   return (
     <>
       <TopHeader />
       <YStack flex={1} backgroundColor="#22303D" padding="$4">
         <View style={{ flex: 1, padding: 16 }}>
-          <TaskList tasks={todaysTasks} onTaskPress={handleTaskPress} />
+          {loading ? (
+            <Text color="#fff">Loading tasks...</Text>
+          ) : tasks.length > 0 ? (
+            <TaskList tasks={tasks} onTaskPress={handleTaskPress} />
+          ) : (
+            <Text color="#ccc">No tasks assigned for today.</Text>
+          )}
         </View>
       </YStack>
       <EmployeeNavbar />

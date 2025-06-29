@@ -1,48 +1,46 @@
-import { Task } from '@/app/types'
-import EmployeeNavbar from '@/components/EmployeeNavbar'
-import TopHeader from '@/components/Header'
-import TaskList from '@/components/TaskList'
-import DateTimePicker from '@react-native-community/datetimepicker'
-import { Calendar } from '@tamagui/lucide-icons'
-import { router } from 'expo-router'
-import React, { useState } from 'react'
-import { Platform } from 'react-native'
-import { Button, Card, Text, XStack, YStack } from 'tamagui'
-
-const mockTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Safety Inspection',
-    description: 'Inspect all exits & fire extinguishers',
-    instructions: 'Follow protocol sheet and record findings',
-    assignedDate: '2025-06-29',
-    status: 'Not Started',
-  },
-  {
-    id: '2',
-    title: 'Daily Log Update',
-    description: 'Update machine usage logs',
-    instructions: 'Use tablet to submit digital log',
-    assignedDate: '2025-06-29',
-    status: 'Submitted',
-  },
-  {
-    id: '3',
-    title: 'Inventory Restock',
-    description: 'Refill shelves A1–A5',
-    instructions: 'Notify supervisor when done',
-    assignedDate: '2025-06-28',
-    status: 'Approved',
-  },
-]
+import { Task } from '@/app/types';
+import EmployeeNavbar from '@/components/EmployeeNavbar';
+import TopHeader from '@/components/Header';
+import TaskList from '@/components/TaskList';
+import { getTasksByDate } from '@/lib/api/tasks';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar } from '@tamagui/lucide-icons';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
+import { Button, Card, Text, XStack, YStack } from 'tamagui';
+import { getCurrentUserId } from '../auth/authHelpers';
 
 export default function TasksPage() {
   const [date, setDate] = useState(new Date())
   const [showPicker, setShowPicker] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const formattedDate = date.toISOString().slice(0, 10)
-  const filteredTasks = mockTasks.filter(t => t.assignedDate === formattedDate)
 
+  useEffect(() => {
+    async function loadTasks() {
+      setLoading(true);
+      setError(null);
+  
+      try {
+        const userId = await getCurrentUserId();
+        if (!userId) throw new Error('User not authenticated');
+        const data = await getTasksByDate(userId, formattedDate);
+        setTasks(data);
+      } catch (err) {
+        setError('Failed to fetch tasks');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  
+    loadTasks();
+  }, [date]);
+  
   const onTaskPress = (task: Task) => {
     router.push(`/modals/task/${task.id}`)
   }
@@ -80,8 +78,12 @@ export default function TasksPage() {
           />
         )}
 
-        {filteredTasks.length > 0 ? (
-          <TaskList tasks={filteredTasks} onTaskPress={onTaskPress} />
+        {loading ? (
+          <Text color="#fff" fontSize="$4">Loading tasks...</Text>
+        ) : error ? (
+          <Text color="red" fontSize="$4">{error}</Text>
+        ) : tasks.length > 0 ? (
+          <TaskList tasks={tasks} onTaskPress={onTaskPress} />
         ) : (
           <Card
             padded
