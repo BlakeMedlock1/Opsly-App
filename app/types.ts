@@ -9,3 +9,11 @@ export interface Task {
     status: TaskStatus; 
   }
   
+  export interface Message {
+    id: string;
+    title: string;
+    content: string;
+    date: string; 
+    read: boolean;
+  }
+  
