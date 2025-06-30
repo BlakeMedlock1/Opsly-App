@@ -40,7 +40,7 @@ export function useAuthViewModel() {
         const role = await getUserRole(user.id);
         setRole(role);
         if (role === 'employee') router.replace('/employee/employeeHome');
-        else if (role === 'manager') router.replace('/manager/managerHome');
+        else if (role === 'manager') router.replace('/manager/home');
         else if (role === 'admin') router.replace('/admin/adminHome');
         else throw new Error('Unknown role');
       }

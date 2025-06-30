@@ -29,3 +29,45 @@ export const submitTask = async (
     if (error) throw error;
   };
   
+  export async function getPendingTasks() {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('status', 'Submitted')
+  
+    if (error) {
+      console.error('Error fetching pending tasks:', error)
+      throw error
+    }
+  
+    return data
+  }
+  
+  export async function updateTaskStatus(taskId: string, newStatus: string) {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: newStatus })
+      .eq('id', taskId)
+  
+    if (error) {
+      console.error('Failed to update task status:', error)
+      throw error
+    }
+  }
+
+  export async function assignTask(task: {
+    title: string
+    description: string
+    instructions: string
+    assigned_date: string
+    user_id: string
+  }) {
+    const { error } = await supabase.from('tasks').insert([{
+      ...task,
+    }])
+  
+    if (error) {
+      console.error('Error assigning task:', error)
+      throw error
+    }
+  }
