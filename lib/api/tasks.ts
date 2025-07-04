@@ -12,6 +12,17 @@ export const getTasksByDate = async (userId: string, date: string) => {
   return data;
 };
 
+export async function getTaskById(id: string) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export const submitTask = async (
     taskId: string,
     proofUrl?: string,
@@ -33,7 +44,7 @@ export const submitTask = async (
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
-      .eq('status', 'Submitted')
+      .eq('status', 'submitted')
   
     if (error) {
       console.error('Error fetching pending tasks:', error)
