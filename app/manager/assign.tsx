@@ -5,16 +5,16 @@ import { getAllEmployees } from '@/lib/api/users'
 import React, { useEffect, useState } from 'react'
 import { Alert } from 'react-native'
 import {
-    Button,
-    Card,
-    Input,
-    Label,
-    ScrollView,
-    Select,
-    Separator,
-    Text,
-    TextArea,
-    YStack
+  Button,
+  Card,
+  Input,
+  Label,
+  ScrollView,
+  Select,
+  Separator,
+  Text,
+  TextArea,
+  YStack
 } from 'tamagui'
 
 export default function AssignPage() {
@@ -22,6 +22,7 @@ export default function AssignPage() {
   const [description, setDescription] = useState('')
   const [instructions, setInstructions] = useState('')
   const [assigned_date] = useState(new Date().toISOString().slice(0, 10))
+  const [dueDate, setDueDate] = useState('')
   const [userId, setUserId] = useState('')
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
@@ -43,8 +44,16 @@ export default function AssignPage() {
   }, [])
 
   const handleSubmit = async () => {
-    if (!title || !description || !instructions || !userId) {
+    if (!title || !description || !instructions || !userId || !dueDate) {
       Alert.alert('Please fill in all fields')
+      return
+    }
+
+    const due = new Date(dueDate)
+    const today = new Date(assigned_date)
+
+    if (isNaN(due.getTime()) || due <= today) {
+      Alert.alert('Due date must be a valid future date')
       return
     }
 
@@ -53,7 +62,7 @@ export default function AssignPage() {
         title,
         description,
         instructions,
-        assigned_date,
+        assigned_date: dueDate,
         user_id: userId,
       })
 
@@ -61,6 +70,7 @@ export default function AssignPage() {
       setTitle('')
       setDescription('')
       setInstructions('')
+      setDueDate('')
       setUserId('')
     } catch {
       Alert.alert('Error', 'Failed to assign task')
@@ -108,7 +118,6 @@ export default function AssignPage() {
 
               <Separator borderColor="#4b5563" />
 
-             
               <YStack>
                 <Label color="#ffffffcc" fontWeight="600">Title</Label>
                 <Input
@@ -121,7 +130,6 @@ export default function AssignPage() {
                 />
               </YStack>
 
-              
               <YStack>
                 <Label color="#ffffffcc" fontWeight="600">Description</Label>
                 <TextArea
@@ -134,7 +142,6 @@ export default function AssignPage() {
                 />
               </YStack>
 
-              
               <YStack>
                 <Label color="#ffffffcc" fontWeight="600">Instructions</Label>
                 <TextArea
@@ -144,6 +151,19 @@ export default function AssignPage() {
                   backgroundColor="#1f2937"
                   color="#fff"
                   borderColor="#a78bfa"
+                />
+              </YStack>
+
+              <YStack>
+                <Label color="#ffffffcc" fontWeight="600">Due Date</Label>
+                <Input
+                  value={dueDate}
+                  onChangeText={setDueDate}
+                  placeholder="YYYY-MM-DD"
+                  backgroundColor="#1f2937"
+                  color="#fff"
+                  borderColor="#fb923c"
+                  keyboardType="numbers-and-punctuation"
                 />
               </YStack>
 

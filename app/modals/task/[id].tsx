@@ -104,7 +104,7 @@ export default function TaskModal() {
           Assigned on: {new Date(task.assigned_date).toLocaleDateString()}
         </Text>
 
-        {task.status === 'Not Started' || task.status === 'In Progress' ? (
+        {task.status === 'Not Started' || task.status === 'In Progress' || task.status === 'Rejected'? (
           <Button
             theme="blue"
             onPress={handleSubmit}

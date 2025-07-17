@@ -73,8 +73,7 @@ export default function TasksPage() {
             onChange={(_, selectedDate) => {
               setShowPicker(false)
               if (selectedDate) setDate(selectedDate)
-            }}
-            maximumDate={new Date()}
+            }} 
           />
         )}
 
