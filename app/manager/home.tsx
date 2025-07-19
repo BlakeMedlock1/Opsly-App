@@ -34,7 +34,7 @@ export default function ManagerDashboard() {
     <TopHeader />
     <YStack flex={1} padding="$4" backgroundColor="#22303D">
       <Text fontSize="$6" fontWeight="700" color="white" marginBottom="$4">
-        Ongoing Tasks Today
+        Tasks Today
       </Text>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
