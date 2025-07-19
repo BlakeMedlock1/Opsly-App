@@ -11,7 +11,6 @@ import {
   Label,
   ScrollView,
   Select,
-  Separator,
   Text,
   TextArea,
   YStack
@@ -20,9 +19,8 @@ import {
 export default function AssignPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [instructions, setInstructions] = useState('')
-  const [assigned_date] = useState(new Date().toISOString().slice(0, 10))
   const [dueDate, setDueDate] = useState('')
+  const [subtasks, setSubtasks] = useState([{ text: '', requiredProof: false }])
   const [userId, setUserId] = useState('')
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
@@ -43,17 +41,27 @@ export default function AssignPage() {
     fetchEmployees()
   }, [])
 
+  const handleAddSubtask = () => {
+    setSubtasks([...subtasks, { text: '', requiredProof: false }])
+  }
+
+  const handleSubtaskChange = (
+    index: number,
+    key: 'text' | 'requiredProof',
+    value: string | boolean
+  ) => {
+    const updated = [...subtasks]
+    updated[index] = {
+      ...updated[index],
+      [key]: value,
+    } as typeof updated[number]
+    setSubtasks(updated)
+  }
+  
+
   const handleSubmit = async () => {
-    if (!title || !description || !instructions || !userId || !dueDate) {
-      Alert.alert('Please fill in all fields')
-      return
-    }
-
-    const due = new Date(dueDate)
-    const today = new Date(assigned_date)
-
-    if (isNaN(due.getTime()) || due <= today) {
-      Alert.alert('Due date must be a valid future date')
+    if (!title || !description || !userId || !dueDate || subtasks.some(s => !s.text)) {
+      Alert.alert('Please fill in all fields including subtasks')
       return
     }
 
@@ -61,17 +69,16 @@ export default function AssignPage() {
       await assignTask({
         title,
         description,
-        instructions,
         assigned_date: dueDate,
         user_id: userId,
+        subtasks,
       })
-
       Alert.alert('Success', 'Task assigned!')
       setTitle('')
       setDescription('')
-      setInstructions('')
       setDueDate('')
       setUserId('')
+      setSubtasks([{ text: '', requiredProof: false }])
     } catch {
       Alert.alert('Error', 'Failed to assign task')
     }
@@ -86,96 +93,68 @@ export default function AssignPage() {
             Assign a Task
           </Text>
 
-          <Card
-            backgroundColor="#2c3e50"
-            padding="$4"
-            borderRadius="$6"
-            elevate
-            shadowColor="black"
-          >
+          <Card backgroundColor="#2c3e50" padding="$4" borderRadius="$6" elevate shadowColor="black">
             <YStack gap="$3">
 
               <YStack>
-                <Label color="#ffffffcc" fontWeight="600">Assign To</Label>
-                <Select
-                  value={userId}
-                  onValueChange={setUserId}
-                >
+                <Label color="#ffffffcc">Assign To</Label>
+                <Select value={userId} onValueChange={setUserId}>
                   <Select.Trigger backgroundColor="#1f2937" color="#fff" borderColor="#4ade80" />
                   <Select.Content>
                     <Select.ScrollUpButton />
                     <Select.Viewport>
-                      {employees.map((emp, index) => (
-                        <Select.Item key={emp.id} index={index} value={emp.id}>
+                    {employees.map((emp, index) => (
+                      <Select.Item key={emp.id} value={emp.id} index={index}>
                           <Select.ItemText>{emp.name}</Select.ItemText>
-                        </Select.Item>
-                      ))}
+                      </Select.Item>
+                    ))}
+
                     </Select.Viewport>
                     <Select.ScrollDownButton />
                   </Select.Content>
                 </Select>
               </YStack>
 
-              <Separator borderColor="#4b5563" />
-
               <YStack>
-                <Label color="#ffffffcc" fontWeight="600">Title</Label>
-                <Input
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder="Enter task title"
-                  backgroundColor="#1f2937"
-                  color="#fff"
-                  borderColor="#38bdf8"
-                />
+                <Label color="#ffffffcc">Title</Label>
+                <Input value={title} onChangeText={setTitle} placeholder="Task Title" backgroundColor="#1f2937" color="#fff" />
               </YStack>
 
               <YStack>
-                <Label color="#ffffffcc" fontWeight="600">Description</Label>
-                <TextArea
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Enter description"
-                  backgroundColor="#1f2937"
-                  color="#fff"
-                  borderColor="#facc15"
-                />
+                <Label color="#ffffffcc">Description</Label>
+                <TextArea value={description} onChangeText={setDescription} placeholder="Task Description" backgroundColor="#1f2937" color="#fff" />
               </YStack>
 
               <YStack>
-                <Label color="#ffffffcc" fontWeight="600">Instructions</Label>
-                <TextArea
-                  value={instructions}
-                  onChangeText={setInstructions}
-                  placeholder="Enter instructions"
-                  backgroundColor="#1f2937"
-                  color="#fff"
-                  borderColor="#a78bfa"
-                />
+                <Label color="#ffffffcc">Due Date</Label>
+                <Input value={dueDate} onChangeText={setDueDate} placeholder="YYYY-MM-DD" backgroundColor="#1f2937" color="#fff" />
               </YStack>
 
-              <YStack>
-                <Label color="#ffffffcc" fontWeight="600">Due Date</Label>
-                <Input
-                  value={dueDate}
-                  onChangeText={setDueDate}
-                  placeholder="YYYY-MM-DD"
-                  backgroundColor="#1f2937"
-                  color="#fff"
-                  borderColor="#fb923c"
-                  keyboardType="numbers-and-punctuation"
-                />
+              <YStack gap="$2">
+                <Label color="#ffffffcc">Subtasks / Checklist</Label>
+                {subtasks.map((subtask, i) => (
+                  <YStack key={i} gap="$1">
+                    <Input
+                      value={subtask.text}
+                      onChangeText={(text) => handleSubtaskChange(i, 'text', text)}
+                      placeholder={`Step ${i + 1}`}
+                      backgroundColor="#1f2937"
+                      color="#fff"
+                    />
+                    <Label color="#ffffffcc">
+                      <input
+                        type="checkbox"
+                        checked={subtask.requiredProof}
+                        onChange={(e) => handleSubtaskChange(i, 'requiredProof', e.target.checked)}
+                      />{' '}
+                      Requires Proof
+                    </Label>
+                  </YStack>
+                ))}
+                <Button onPress={handleAddSubtask} theme="blue">+ Add Subtask</Button>
               </YStack>
 
-              <Button
-                size="$4"
-                theme="green"
-                onPress={handleSubmit}
-                marginTop="$4"
-                borderRadius="$10"
-              >
-                Assign Task
-              </Button>
+              <Button onPress={handleSubmit} theme="green" marginTop="$4">Assign Task</Button>
             </YStack>
           </Card>
         </YStack>
@@ -184,3 +163,4 @@ export default function AssignPage() {
     </>
   )
 }
+

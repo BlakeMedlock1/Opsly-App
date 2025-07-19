@@ -14,13 +14,13 @@ const getStatusStyle = (status: TaskStatus) => {
     case 'Not Started':
       return { bg: '#fef08a', color: '#92400e' }; 
     case 'Submitted':
-      return { bg: '#bae6fd', color: '#0369a1' }; 
+      return { bg: '#040273', color: '#fff' }; 
     case 'Approved':
       return { bg: '#bbf7d0', color: '#15803d' }; 
     case 'Rejected':
       return { bg: '#fecaca', color: '#991b1b' }; 
     default:
-      return { bg: '#2c3e50', color: '#fff' }; 
+      return { bg: '#040273', color: '#fff' }; 
   }
 };
 
