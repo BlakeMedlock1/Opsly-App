@@ -154,3 +154,26 @@ export async function updateSubtaskStatus(taskId: string, subtasks: { id: string
 
   await Promise.all(updates)
 }
+
+export async function getOngoingTasksForToday() {
+  const today = new Date().toISOString().split('T')[0] 
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      subtasks (
+        id,
+        checked
+      )
+    `)
+    .eq('assigned_date', today)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching ongoing tasks:', error)
+    throw error
+  }
+
+  return data
+}

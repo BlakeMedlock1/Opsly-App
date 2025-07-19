@@ -1,7 +1,8 @@
 import { Task } from '@/app/types'
 import TopHeader from '@/components/Header'
 import ManagerNavbar from '@/components/ManagerNavbar'
-import { getPendingTasks, updateTaskStatus } from '@/lib/api/tasks'
+import { getPendingTasks } from '@/lib/api/tasks'
+import { router } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { FlatList } from 'react-native'
 import { Button, Card, Text, YStack } from 'tamagui'
@@ -26,11 +27,6 @@ export default function ReviewTasksPage() {
     fetchTasks()
   }, [])
 
-  const handleAction = async (taskId: string, action: 'Approved' | 'Rejected') => {
-    await updateTaskStatus(taskId, action)
-    fetchTasks();
-  }
-
   return (
     <>
       <TopHeader />
@@ -53,20 +49,13 @@ export default function ReviewTasksPage() {
                   <Text color="#fff" fontSize="$5" fontWeight="700">{item.title}</Text>
                   <Text color="#ccc">{item.description}</Text>
                   <YStack gap="$2" marginTop="$2" flexDirection="row">
-                    <Button
-                      size="$2"
-                      theme="green"
-                      onPress={() => handleAction(item.id, 'Approved')}
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      size="$2"
-                      theme="red"
-                      onPress={() => handleAction(item.id, 'Rejected')}
-                    >
-                      Reject
-                    </Button>
+                  <Button
+                    size="$2"
+                    theme="green"
+                    onPress={() => router.push(`../modals/approve/${item.id}`)}
+                  >
+                  Review
+                  </Button>
                   </YStack>
                 </YStack>
               </Card>
