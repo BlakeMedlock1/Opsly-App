@@ -56,7 +56,7 @@ export default function TaskModal() {
   const loadProofs = async (task: any) => {
     const result: { [key: number]: any[] } = {}
     for (let i = 0; i < task.subtasks.length; i++) {
-      if (task.subtasks[i].required_proof) {
+      if (task.subtasks[i].requiredProof) {
         try {
           const items = await listProofImages(task.id, i)
           result[i] = items ?? []
@@ -105,7 +105,7 @@ export default function TaskModal() {
     if (!task || isSubmitted || isApproved) return
 
     const sub = task.subtasks[index]
-    if (sub.required_proof && (!proofs[index] || proofs[index].length === 0)) {
+    if (sub.requiredProof && (!proofs[index] || proofs[index].length === 0)) {
       Alert.alert('Proof Required', 'Upload proof before completing this step.')
       return
     }
@@ -138,6 +138,8 @@ export default function TaskModal() {
 
   const allCompleted = task?.subtasks?.every((sub: any) => sub.checked)
 
+
+
   if (loading || !task) return null
 
   return (
@@ -158,7 +160,8 @@ export default function TaskModal() {
         </Text>
 
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
-          {task.subtasks?.map((sub: any, index: number) => (
+          {task.subtasks?.map((sub: any, index: number) => {
+            return(
             <Card
               key={sub.id || index}
               backgroundColor="#1f2937"
@@ -193,7 +196,7 @@ export default function TaskModal() {
                     {sub.text}
                   </Text>
 
-                  {sub.required_proof && (
+                  {sub.requiredProof && (
                     <YStack marginTop="$2" space="$2">
                       <Button
                         size="$2"
@@ -231,7 +234,8 @@ export default function TaskModal() {
                 </YStack>
               </XStack>
             </Card>
-          ))}
+            )
+          })}
         </ScrollView>
 
         {!(isSubmitted || isApproved) && (
