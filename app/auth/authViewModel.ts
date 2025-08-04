@@ -9,26 +9,31 @@ export function useAuthViewModel() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setRole, setIsAuthenticated } = useAuth();
-  
+
   const handleAuth = async () => {
     setLoading(true);
     setError('');
     try {
       if (mode === 'signup') {
-        const { user , error: signUpError } = await supabase.auth.signUp({
+        const { user, error: signUpError } = await supabase.auth.signUp({
           email,
           password
         });
         if (signUpError) throw signUpError;
-        if (user){
+        if (user) {
           const userId = user.id;
           const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert([{ id: userId, role: "employee", email: email }]);
-        };
+            .from('user_profiles')
+            .insert([{ id: userId, role: 'employee', email: email, name: name }]);
+          if (profileError) throw profileError;
+          setIsAuthenticated(true);
+          setRole('employee');
+          router.replace('/employee/employeeHome');
+        }
       } else {
         const { user, error: signInError } = await supabase.auth.signIn({
           email,
@@ -51,13 +56,25 @@ export function useAuthViewModel() {
     }
   };
 
+  const resetPassword = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { error } =await supabase.auth.api.resetPasswordForEmail(email)
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || 'Error sending reset email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getUserRole = async (userId: string): Promise<Role> => {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', userId)
       .single();
-
     if (error) throw error;
     return data.role as Role;
   };
@@ -69,8 +86,12 @@ export function useAuthViewModel() {
     setEmail,
     password,
     setPassword,
+    name,
+    setName,
     loading,
     error,
     handleAuth,
+    resetPassword,
   };
 }
+

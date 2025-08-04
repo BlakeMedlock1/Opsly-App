@@ -1,4 +1,4 @@
-import { ActivityIndicator, Image } from 'react-native'
+import { ActivityIndicator, Image, Pressable } from 'react-native'
 import {
   Button,
   Input,
@@ -16,9 +16,12 @@ export default function AuthScreen() {
     setEmail,
     password,
     setPassword,
+    name,
+    setName,
     loading,
     error,
     handleAuth,
+    resetPassword,
   } = useAuthViewModel()
 
   return (
@@ -51,6 +54,14 @@ export default function AuthScreen() {
       </XStack>
 
       <YStack width="100%" maxWidth={320} space={12}>
+        {mode === 'signup' && (
+          <Input
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+            placeholderTextColor="#6B7280"
+          />
+        )}
         <Input
           placeholder="Email"
           value={email}
@@ -66,14 +77,16 @@ export default function AuthScreen() {
         />
 
         {mode === 'login' && (
-          <Text
-            color="white"
-            fontSize={12}
-            textAlign="right"
-            style={{ textDecorationLine: 'underline' }}
-          >
-            Forgot Password?
-          </Text>
+          <Pressable onPress={resetPassword}>
+            <Text
+              color="white"
+              fontSize={12}
+              textAlign="right"
+              style={{ textDecorationLine: 'underline' }}
+            >
+              Forgot Password?
+            </Text>
+          </Pressable>
         )}
 
         <Button
@@ -86,7 +99,7 @@ export default function AuthScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text color="white" fontWeight="600">
-              Sign In
+              {mode === 'signup' ? 'Sign Up' : 'Sign In'}
             </Text>
           )}
         </Button>
