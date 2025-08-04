@@ -64,7 +64,6 @@ export default function TaskApprovalModal() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#22303D' }}>
       <YStack flex={1} padding="$4" space="$4">
-        {/* Close button */}
         <View style={{ position: 'absolute', top: 10, right: 20, zIndex: 10 }}>
           <TouchableOpacity onPress={() => router.back()}>
             <X color="white" size={28} />
@@ -114,7 +113,22 @@ export default function TaskApprovalModal() {
                     </Text>
                   </YStack>
                 </XStack>
-              </Card>
+                {sub.required_proof && (
+                <YStack marginTop="$2">
+                <Text color="#94a3b8" fontSize="$2">Proof</Text>
+                  {(sub.proofs ?? []).map((proofUrl: string, i: number) => (
+                <Image
+                  key={i}
+                  source={{ uri: proofUrl }}
+                  style={{ width: '100%', height: 180, borderRadius: 10, marginTop: 8 }}
+                  resizeMode="cover"
+                />
+              ))}
+            </YStack>
+          )}
+
+            </Card>
+              
             ))}
 
             {task.notes && (

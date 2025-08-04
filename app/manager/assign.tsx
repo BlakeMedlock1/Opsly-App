@@ -71,7 +71,12 @@ export default function AssignPage() {
         description,
         assigned_date: dueDate,
         user_id: userId,
-        subtasks,
+        subtasks: subtasks.map((sub) => ({
+          id: crypto.randomUUID(),    
+          text: sub.text,
+          checked: false,                 
+          required_proof: sub.requiredProof, 
+        })),
       })
       Alert.alert('Success', 'Task assigned!')
       setTitle('')

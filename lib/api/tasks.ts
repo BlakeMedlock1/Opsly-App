@@ -89,9 +89,13 @@ export async function updateTaskStatus(taskId: string, newStatus: string) {
 }
 
 export type Subtask = {
+  id: string
   text: string
-  requiredProof?: boolean
+  checked: boolean
+  required_proof: boolean
+  proof_urls?: string[]
 }
+
 
 type AssignTaskInput = {
   title: string
@@ -122,7 +126,7 @@ export async function assignTask(task: AssignTaskInput) {
   const subtasksWithTaskId = subtasks.map((subtask) => ({
     task_id: taskInsert.id,
     text: subtask.text,
-    required_proof: subtask.requiredProof ?? false,
+    required_proof: subtask.required_proof ?? false,
     checked: false
   }))
 

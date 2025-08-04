@@ -1,8 +1,20 @@
+import {
+  deleteProofImage,
+  listProofImages,
+  uploadProofImage
+} from '@/lib/api/proofs'
 import { getTaskById, submitTask, updateSubtaskStatus } from '@/lib/api/tasks'
 import { Check, X } from '@tamagui/lucide-icons'
+import * as ImagePicker from 'expo-image-picker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native'
+import {
+  Alert,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   Button,
@@ -20,6 +32,7 @@ export default function TaskModal() {
   const [task, setTask] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [proofs, setProofs] = useState<{ [key: number]: any[] }>({})
 
   const isSubmitted = task?.status === 'Submitted'
   const isApproved = task?.status === 'Approved'
@@ -29,6 +42,7 @@ export default function TaskModal() {
       try {
         const data = await getTaskById(id!)
         setTask(data)
+        await loadProofs(data)
       } catch (err) {
         console.error('Failed to load task', err)
       } finally {
@@ -39,12 +53,65 @@ export default function TaskModal() {
     loadTask()
   }, [id])
 
+  const loadProofs = async (task: any) => {
+    const result: { [key: number]: any[] } = {}
+    for (let i = 0; i < task.subtasks.length; i++) {
+      if (task.subtasks[i].required_proof) {
+        try {
+          const items = await listProofImages(task.id, i)
+          result[i] = items ?? []
+        } catch (e) {
+          console.error(`Failed to load proof for subtask ${i}`, e)
+        }
+      }
+    }
+    setProofs(result)
+  }
+
+  const handlePickImage = async (index: number) => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+      quality: 0.7,
+    })
+
+    if (!res.canceled && res.assets.length > 0) {
+      const fileAsset = res.assets[0]
+      const fileUri = fileAsset.uri
+      const fileName = fileUri.split('/').pop() || `proof_${Date.now()}.jpg`
+      const response = await fetch(fileUri)
+      const blob = await response.blob()
+      const file = new File([blob], fileName, { type: blob.type })
+
+      try {
+        await uploadProofImage(task.id, index, file)
+        await loadProofs(task)
+      } catch (err) {
+        console.error('Upload failed', err)
+      }
+    }
+  }
+
+  const handleDeleteImage = async (index: number, fileName: string) => {
+    try {
+      await deleteProofImage(task.id, index, fileName)
+      await loadProofs(task)
+    } catch (err) {
+      console.error('Delete failed', err)
+    }
+  }
+
   const toggleSubtask = async (index: number) => {
     if (!task || isSubmitted || isApproved) return
 
+    const sub = task.subtasks[index]
+    if (sub.required_proof && (!proofs[index] || proofs[index].length === 0)) {
+      Alert.alert('Proof Required', 'Upload proof before completing this step.')
+      return
+    }
+
     const updatedSubtasks = [...task.subtasks]
     updatedSubtasks[index].checked = !updatedSubtasks[index].checked
-
     setTask({ ...task, subtasks: updatedSubtasks })
 
     try {
@@ -127,17 +194,39 @@ export default function TaskModal() {
                   </Text>
 
                   {sub.required_proof && (
-                    <Button
-                      size="$2"
-                      marginTop="$2"
-                      backgroundColor="#3b82f6"
-                      color="white"
-                      borderRadius="$4"
-                      onPress={() => alert('Upload proof placeholder')}
-                      disabled={isSubmitted || isApproved}
-                    >
-                      Upload Proof
-                    </Button>
+                    <YStack marginTop="$2" space="$2">
+                      <Button
+                        size="$2"
+                        backgroundColor="#3b82f6"
+                        color="white"
+                        borderRadius="$4"
+                        onPress={() => handlePickImage(index)}
+                        disabled={isSubmitted || isApproved}
+                      >
+                        Upload Proof
+                      </Button>
+
+                      {proofs[index]?.length > 0 && (
+                        <ScrollView horizontal>
+                          {proofs[index].map((img, imgIndex) => (
+                            <YStack key={img.url} marginRight="$2">
+                              <Image
+                                source={{ uri: img.url }}
+                                style={{ width: 80, height: 80, borderRadius: 6 }}
+                              />
+                              <Button
+                                size="$1"
+                                backgroundColor="#ef4444"
+                                onPress={() => handleDeleteImage(index, img.name)}
+                                marginTop="$1"
+                              >
+                                <Text color="white" fontSize={10}>Delete</Text>
+                              </Button>
+                            </YStack>
+                          ))}
+                        </ScrollView>
+                      )}
+                    </YStack>
                   )}
                 </YStack>
               </XStack>
