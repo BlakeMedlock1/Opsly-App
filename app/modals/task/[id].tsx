@@ -33,7 +33,7 @@ export default function TaskModal() {
   const [task, setTask] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [proofs, setProofs] = useState<{ [key: number]: any[] }>({})
+  const [proofs, setProofs] = useState<{ [key: string]: any[] }>({})
 
   const isSubmitted = task?.status === 'Submitted'
   const isApproved = task?.status === 'Approved'
@@ -55,57 +55,54 @@ export default function TaskModal() {
   }, [id])
 
   const loadProofs = async (task: any) => {
-    const result: { [key: number]: any[] } = {}
-    for (let i = 0; i < task.subtasks.length; i++) {
-      if (task.subtasks[i].requiredProof) {
+    const result: { [key: string]: any[] } = {}
+    for (const sub of task.subtasks) {
+      if (sub.requiredProof) {
         try {
-          const items = await listProofImages(task.id, i)
-          result[i] = items ?? []
+          const items = await listProofImages(task.id, sub.id)
+          result[sub.id] = items ?? []
         } catch (e) {
-          console.error(`Failed to load proof for subtask ${i}`, e)
+          console.error(`Failed to load proof for subtask ${sub.id}`, e)
         }
       }
     }
     setProofs(result)
   }
 
-  const handlePickImage = async (index: number) => {
+  const handlePickImage = async (subtaskId: string) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: false,
       quality: 0.7,
     })
-  
+
     if (!result.canceled && result.assets.length > 0) {
-      const asset = result.assets[0]
-      const fileUri = asset.uri
-  
+      const fileUri = result.assets[0].uri
       try {
-        await uploadProofImage(task.id, index, fileUri)
+        await uploadProofImage(task.id, subtaskId, fileUri)
         await loadProofs(task)
       } catch (err) {
         console.error('Upload failed', err)
       }
     }
   }
-  
-  const handleTakePhoto = async (index: number) => {
+
+  const handleTakePhoto = async (subtaskId: string) => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
     if (!permissionResult.granted) {
       Alert.alert('Permission required', 'Camera access is needed to take photos')
       return
     }
-  
+
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
     })
-  
+
     if (!result.canceled && result.assets.length > 0) {
       const fileUri = result.assets[0].uri
-  
       try {
-        await uploadProofImage(task.id, index, fileUri)
+        await uploadProofImage(task.id, subtaskId, fileUri)
         await loadProofs(task)
       } catch (error) {
         console.error('Upload error', error)
@@ -113,11 +110,10 @@ export default function TaskModal() {
       }
     }
   }
-  
 
-  const handleDeleteImage = async (index: number, fileName: string) => {
+  const handleDeleteImage = async (subtaskId: string, fileName: string) => {
     try {
-      await deleteProofImage(task.id, index, fileName)
+      await deleteProofImage(task.id, subtaskId, fileName)
       await loadProofs(task)
     } catch (err) {
       console.error('Delete failed', err)
@@ -128,7 +124,7 @@ export default function TaskModal() {
     if (!task || isSubmitted || isApproved) return
 
     const sub = task.subtasks[index]
-    if (sub.requiredProof && (!proofs[index] || proofs[index].length === 0)) {
+    if (sub.requiredProof && (!proofs[sub.id] || proofs[sub.id].length === 0)) {
       Alert.alert('Proof Required', 'Upload proof before completing this step.')
       return
     }
@@ -161,8 +157,6 @@ export default function TaskModal() {
 
   const allCompleted = task?.subtasks?.every((sub: any) => sub.checked)
 
-
-
   if (loading || !task) return null
 
   return (
@@ -183,8 +177,7 @@ export default function TaskModal() {
         </Text>
 
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
-          {task.subtasks?.map((sub: any, index: number) => {
-            return(
+          {task.subtasks?.map((sub: any, index: number) => (
             <Card
               key={sub.id || index}
               backgroundColor="#1f2937"
@@ -226,7 +219,7 @@ export default function TaskModal() {
                         backgroundColor="#3b82f6"
                         color="white"
                         borderRadius="$4"
-                        onPress={() => handlePickImage(index)}
+                        onPress={() => handlePickImage(sub.id)}
                         disabled={isSubmitted || isApproved}
                       >
                         Upload Proof
@@ -236,17 +229,16 @@ export default function TaskModal() {
                         backgroundColor="#2563eb"
                         color="white"
                         borderRadius="$4"
-                        onPress={() => handleTakePhoto(index)}
+                        onPress={() => handleTakePhoto(sub.id)}
                         disabled={isSubmitted || isApproved}
                         style={{ marginTop: 8 }}
                       >
-                          Take Photo
+                        Take Photo
                       </Button>
 
-
-                      {proofs[index]?.length > 0 && (
+                      {proofs[sub.id]?.length > 0 && (
                         <ScrollView horizontal>
-                          {proofs[index].map((img, imgIndex) => (
+                          {proofs[sub.id].map((img, imgIndex) => (
                             <YStack key={img.url} marginRight="$2">
                               <Image
                                 source={{ uri: img.url }}
@@ -255,7 +247,7 @@ export default function TaskModal() {
                               <Button
                                 size="$1"
                                 backgroundColor="#ef4444"
-                                onPress={() => handleDeleteImage(index, img.name)}
+                                onPress={() => handleDeleteImage(sub.id, img.name)}
                                 marginTop="$1"
                               >
                                 <Text color="white" fontSize={10}>Delete</Text>
@@ -269,8 +261,7 @@ export default function TaskModal() {
                 </YStack>
               </XStack>
             </Card>
-            )
-          })}
+          ))}
         </ScrollView>
 
         {!(isSubmitted || isApproved) && (

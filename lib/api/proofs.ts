@@ -1,18 +1,42 @@
 import { supabase, SUPABASE_URL } from '@/lib/supabase'
 import * as FileSystem from 'expo-file-system'
 
-export const uploadProofImage = async (
+
+const getMimeTypeFromFilename = (filename: string): string => {
+    const extension = filename.split('.').pop()?.toLowerCase()
+  
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg'
+      case 'png':
+        return 'image/png'
+      case 'gif':
+        return 'image/gif'
+      case 'heic':
+        return 'image/heic'
+      case 'webp':
+        return 'image/webp'
+      case 'pdf':
+        return 'application/pdf'
+      case 'mp4':
+        return 'video/mp4'
+      default:
+        return 'application/octet-stream'
+    }
+  }
+
+  export const uploadProofImage = async (
     taskId: string,
-    subtaskIndex: number,
+    subtaskId: string,      
     fileUri: string
   ) => {
     const fileName = fileUri.split('/').pop() || `proof_${Date.now()}.jpg`
-    const path = `${taskId}/${subtaskIndex}/${Date.now()}_${fileName}`
+    const path = `${taskId}/${subtaskId}/${Date.now()}_${fileName}`
     const contentType = getMimeTypeFromFilename(fileName)
   
     const session = supabase.auth.session()
     const token = session?.access_token
-
   
     if (!token) throw new Error('No session token found for upload.')
   
@@ -33,14 +57,34 @@ export const uploadProofImage = async (
       throw new Error(`Upload failed with status ${response.status}`)
     }
   
-    return { path }
+    const publicURL = `${SUPABASE_URL}/storage/v1/object/public/proofs/${path}`
+  
+    const { data: subtaskData, error: fetchError } = await supabase
+      .from('subtasks')
+      .select('proof_url')
+      .eq('id', subtaskId)
+      .single()
+  
+    if (fetchError) {
+      console.error('Error fetching subtask:', fetchError)
+      throw fetchError
+    }
+  
+    const existingProofs = subtaskData?.proofs ?? []
+  
+    const { error: updateError } = await supabase
+      .from('subtasks')
+      .update({ proof_url: [...existingProofs, publicURL] })
+      .eq('id', subtaskId)
+  
+    if (updateError) {
+      console.error('Error updating subtask proofs:', updateError)
+      throw updateError
+    }
+  
+    return { path, publicURL }
   }
   
-  const getMimeTypeFromFilename = (filename: string) => {
-    if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) return 'image/jpeg'
-    if (filename.endsWith('.png')) return 'image/png'
-    return 'application/octet-stream'
-  }
 
 export async function listProofImages(taskId: string, subtaskIndex: number) {
   const { data, error } = await supabase
@@ -62,9 +106,9 @@ export async function listProofImages(taskId: string, subtaskIndex: number) {
   })
 }
 
-export async function deleteProofImage(taskId: string, subtaskIndex: number, fileName: string) {
-  const path = `${taskId}/${subtaskIndex}/${fileName}`
-  const { error } = await supabase.storage.from('proofs').remove([path])
-  if (error) throw error
-}
-
+export async function deleteProofImage(taskId: string, subtaskId: string, fileName: string) {
+    const path = `${taskId}/${subtaskId}/${fileName}`
+    const { error } = await supabase.storage.from('proofs').remove([path])
+    if (error) throw error
+  }
+  

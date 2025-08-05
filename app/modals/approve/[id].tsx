@@ -1,7 +1,7 @@
 import { getTaskById, updateTaskStatus } from '@/lib/api/tasks'
 import { Check, X } from '@tamagui/lucide-icons'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Alert,
   Image,
@@ -113,7 +113,8 @@ export default function TaskApprovalModal() {
                     </Text>
                   </YStack>
                 </XStack>
-                {sub.required_proof && (
+
+                {sub.requiredProof && (
                 <YStack marginTop="$2">
                 <Text color="#94a3b8" fontSize="$2">Proof</Text>
                   {(sub.proofs ?? []).map((proofUrl: string, i: number) => (
@@ -123,6 +124,7 @@ export default function TaskApprovalModal() {
                   style={{ width: '100%', height: 180, borderRadius: 10, marginTop: 8 }}
                   resizeMode="cover"
                 />
+                
               ))}
             </YStack>
           )}
