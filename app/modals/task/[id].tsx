@@ -69,28 +69,25 @@ export default function TaskModal() {
   }
 
   const handlePickImage = async (index: number) => {
-    const res = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: false,
       quality: 0.7,
     })
-
-    if (!res.canceled && res.assets.length > 0) {
-      const fileAsset = res.assets[0]
-      const fileUri = fileAsset.uri
-      const fileName = fileUri.split('/').pop() || `proof_${Date.now()}.jpg`
-      const response = await fetch(fileUri)
-      const blob = await response.blob()
-      const file = new File([blob], fileName, { type: blob.type })
-
+  
+    if (!result.canceled && result.assets.length > 0) {
+      const asset = result.assets[0]
+      const fileUri = asset.uri
+  
       try {
-        await uploadProofImage(task.id, index, file)
+        await uploadProofImage(task.id, index, fileUri)
         await loadProofs(task)
       } catch (err) {
         console.error('Upload failed', err)
       }
     }
   }
+  
 
   const handleDeleteImage = async (index: number, fileName: string) => {
     try {

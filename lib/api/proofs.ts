@@ -1,18 +1,46 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, SUPABASE_URL } from '@/lib/supabase'
+import * as FileSystem from 'expo-file-system'
 
-export async function uploadProofImage(taskId: string, subtaskIndex: number, file: File) {
-  const filePath = `${taskId}/${subtaskIndex}/${Date.now()}_${file.name}`
+export const uploadProofImage = async (
+    taskId: string,
+    subtaskIndex: number,
+    fileUri: string
+  ) => {
+    const fileName = fileUri.split('/').pop() || `proof_${Date.now()}.jpg`
+    const path = `${taskId}/${subtaskIndex}/${Date.now()}_${fileName}`
+    const contentType = getMimeTypeFromFilename(fileName)
+  
+    const session = supabase.auth.session()
+    const token = session?.access_token
 
-  const { error } = await supabase.storage.from('proofs').upload(filePath, file, {
-    cacheControl: '3600',
-    upsert: false,
-  })
-
-  if (error) throw error
-
-  const { data } = supabase.storage.from('proofs').getPublicUrl(filePath)
-  return data?.publicURL
-}
+  
+    if (!token) throw new Error('No session token found for upload.')
+  
+    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/proofs/${path}`
+  
+    const response = await FileSystem.uploadAsync(uploadUrl, fileUri, {
+      httpMethod: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+    })
+  
+    if (response.status !== 200 && response.status !== 201) {
+      console.error('Upload failed', response)
+      throw new Error(`Upload failed with status ${response.status}`)
+    }
+  
+    return { path }
+  }
+  
+  const getMimeTypeFromFilename = (filename: string) => {
+    if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) return 'image/jpeg'
+    if (filename.endsWith('.png')) return 'image/png'
+    return 'application/octet-stream'
+  }
 
 export async function listProofImages(taskId: string, subtaskIndex: number) {
   const { data, error } = await supabase
