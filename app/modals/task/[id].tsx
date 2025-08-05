@@ -26,6 +26,7 @@ import {
   YStack
 } from 'tamagui'
 
+
 export default function TaskModal() {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -84,6 +85,31 @@ export default function TaskModal() {
         await loadProofs(task)
       } catch (err) {
         console.error('Upload failed', err)
+      }
+    }
+  }
+  
+  const handleTakePhoto = async (index: number) => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
+    if (!permissionResult.granted) {
+      Alert.alert('Permission required', 'Camera access is needed to take photos')
+      return
+    }
+  
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    })
+  
+    if (!result.canceled && result.assets.length > 0) {
+      const fileUri = result.assets[0].uri
+  
+      try {
+        await uploadProofImage(task.id, index, fileUri)
+        await loadProofs(task)
+      } catch (error) {
+        console.error('Upload error', error)
+        Alert.alert('Upload Failed', 'Could not upload the photo. Please try again.')
       }
     }
   }
@@ -205,6 +231,18 @@ export default function TaskModal() {
                       >
                         Upload Proof
                       </Button>
+                      <Button
+                        size="$2"
+                        backgroundColor="#2563eb"
+                        color="white"
+                        borderRadius="$4"
+                        onPress={() => handleTakePhoto(index)}
+                        disabled={isSubmitted || isApproved}
+                        style={{ marginTop: 8 }}
+                      >
+                          Take Photo
+                      </Button>
+
 
                       {proofs[index]?.length > 0 && (
                         <ScrollView horizontal>
