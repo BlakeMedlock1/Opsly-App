@@ -60,7 +60,6 @@ export default function TaskApprovalModal() {
   }
 
   if (loading || !task) return null
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#22303D' }}>
       <YStack flex={1} padding="$4" space="$4">
@@ -117,7 +116,7 @@ export default function TaskApprovalModal() {
                 {sub.requiredProof && (
                 <YStack marginTop="$2">
                 <Text color="#94a3b8" fontSize="$2">Proof</Text>
-                  {(sub.proofs ?? []).map((proofUrl: string, i: number) => (
+                  {(sub.proofUrl ?? []).map((proofUrl: string, i: number) =>(
                 <Image
                   key={i}
                   source={{ uri: proofUrl }}

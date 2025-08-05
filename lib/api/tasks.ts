@@ -21,6 +21,7 @@ export async function getTaskById(id: string) {
         id,
         text,
         required_proof,
+        proof_url,
         checked
       )
     `)
@@ -36,6 +37,7 @@ export async function getTaskById(id: string) {
     id: s.id,
     text: s.text,
     requiredProof: s.required_proof,
+    proofUrl:s.proof_url,
     checked: s.checked,
   }))
 
